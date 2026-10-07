@@ -44,9 +44,54 @@ export default function App() {
   const [transactions, setTransactions] = useState<TransactionRecord[]>(INITIAL_TRANSACTIONS);
   const [limitOrders, setLimitOrders] = useState<LimitOrder[]>(INITIAL_LIMIT_ORDERS);
 
+  // MAS API integration status
+  const [masStatus, setMasStatus] = useState<{
+    source: string;
+    lastSync: string;
+    isKeyConfigured: boolean;
+    isSyncing: boolean;
+    endOfDay?: string;
+  }>({
+    source: 'monetary_straits_cached',
+    lastSync: 'Initial',
+    isKeyConfigured: false,
+    isSyncing: false,
+  });
+
   // Ticking highlights
   const [lastTickPair, setLastTickPair] = useState<string | undefined>(undefined);
   const [lastTickDirection, setLastTickDirection] = useState<'up' | 'down' | undefined>(undefined);
+
+  // Fetch from /api/forex
+  const syncMasRates = async () => {
+    setMasStatus((prev) => ({ ...prev, isSyncing: true }));
+    try {
+      const res = await fetch('/api/forex');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.rates && Array.isArray(data.rates) && data.rates.length > 0) {
+          setRates(data.rates);
+        }
+        setMasStatus({
+          source: data.source || 'mas_official_api',
+          lastSync: new Date().toLocaleTimeString('en-SG', { timeZone: 'Asia/Singapore' }) + ' SGT',
+          isKeyConfigured: Boolean(data.mas_api_configured),
+          isSyncing: false,
+          endOfDay: data.end_of_day,
+        });
+      } else {
+        setMasStatus((prev) => ({ ...prev, isSyncing: false }));
+      }
+    } catch (err) {
+      console.warn('Could not sync /api/forex:', err);
+      setMasStatus((prev) => ({ ...prev, isSyncing: false }));
+    }
+  };
+
+  // Sync MAS rates on initial mount
+  useEffect(() => {
+    syncMasRates();
+  }, []);
 
   // Modals state
   const [isDepositOpen, setIsDepositOpen] = useState(false);
@@ -239,6 +284,8 @@ export default function App() {
           setIsDepositOpen(true);
         }}
         onOpenProfile={() => setIsProfileOpen(true)}
+        masStatus={masStatus}
+        onSyncMas={syncMasRates}
       />
 
       {/* Main Content Area */}
@@ -294,6 +341,8 @@ export default function App() {
               }}
               lastTickPair={lastTickPair}
               lastTickDirection={lastTickDirection}
+              masStatus={masStatus}
+              onSyncMas={syncMasRates}
             />
 
             {/* Active Limit Orders List */}

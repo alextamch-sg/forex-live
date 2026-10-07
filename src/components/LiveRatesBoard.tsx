@@ -8,6 +8,14 @@ interface LiveRatesBoardProps {
   onSelectPair: (pair: FxRate) => void;
   lastTickPair?: string;
   lastTickDirection?: 'up' | 'down';
+  masStatus?: {
+    source: string;
+    lastSync: string;
+    isKeyConfigured: boolean;
+    isSyncing?: boolean;
+    endOfDay?: string;
+  };
+  onSyncMas?: () => void;
 }
 
 export const LiveRatesBoard: React.FC<LiveRatesBoardProps> = ({
@@ -15,6 +23,8 @@ export const LiveRatesBoard: React.FC<LiveRatesBoardProps> = ({
   onSelectPair,
   lastTickPair,
   lastTickDirection,
+  masStatus,
+  onSyncMas,
 }) => {
   return (
     <div className="bg-white border border-[#E2E8F0] rounded-xl shadow-xs overflow-hidden mb-8">
@@ -35,8 +45,25 @@ export const LiveRatesBoard: React.FC<LiveRatesBoardProps> = ({
           </p>
         </div>
 
-        <div className="text-xs font-mono text-[#64748B]">
-          Tick Feed: <span className="text-[#0A2540] font-semibold">BCS/MAS MEPS+ Direct</span>
+        <div className="flex items-center gap-3">
+          <div className="text-xs font-mono text-[#64748B]">
+            Feed:{' '}
+            <span className="text-[#0A2540] font-semibold">
+              {masStatus?.source === 'mas_official_api'
+                ? `MAS MSB (${masStatus.endOfDay || 'Daily'})`
+                : 'MAS Gateway / BCS Interbank'}
+            </span>
+          </div>
+
+          {onSyncMas && (
+            <button
+              onClick={onSyncMas}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#F0F5FF] hover:bg-[#E0EBFF] text-[#0052FF] font-semibold text-xs rounded-md transition-colors border border-[#CBD5E1]"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${masStatus?.isSyncing ? 'animate-spin' : ''}`} />
+              <span>Sync MAS API</span>
+            </button>
+          )}
         </div>
       </div>
 

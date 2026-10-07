@@ -1,11 +1,18 @@
 import React from 'react';
-import { ArrowDownLeft, ShieldCheck, Building2, User } from 'lucide-react';
+import { ArrowDownLeft, ShieldCheck, Building2, User, RefreshCw } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'converter' | 'rates' | 'accounts' | 'banks' | 'ledger';
   setActiveTab: (tab: 'converter' | 'rates' | 'accounts' | 'banks' | 'ledger') => void;
   onOpenDeposit: () => void;
   onOpenProfile: () => void;
+  masStatus?: {
+    source: string;
+    lastSync: string;
+    isKeyConfigured: boolean;
+    isSyncing?: boolean;
+  };
+  onSyncMas?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -13,6 +20,8 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   onOpenDeposit,
   onOpenProfile,
+  masStatus,
+  onSyncMas,
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#E2E8F0]">
@@ -86,7 +95,18 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Zone 3: Primary Actions */}
         <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 text-xs text-[#00875A] bg-[#E8F8F0] border border-[#B3E5CD] rounded-md font-mono">
+          {onSyncMas && (
+            <button
+              onClick={onSyncMas}
+              title={`Source: ${masStatus?.source === 'mas_official_api' ? 'Official MAS API' : 'Cached Baseline'}. Click to re-sync.`}
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 text-xs text-[#0052FF] bg-[#F0F5FF] border border-[#CBD5E1] hover:border-[#0052FF] rounded-md font-mono transition-colors"
+            >
+              <RefreshCw className={`w-3 h-3 ${masStatus?.isSyncing ? 'animate-spin' : ''}`} />
+              <span>MAS API: {masStatus?.source === 'mas_official_api' ? 'Live' : 'Standby'}</span>
+            </button>
+          )}
+
+          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 text-xs text-[#00875A] bg-[#E8F8F0] border border-[#B3E5CD] rounded-md font-mono">
             <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
             <span className="whitespace-nowrap">MEPS / FAST RTGS</span>
           </div>

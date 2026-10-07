@@ -5,7 +5,39 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: 'api-dev-middleware',
+        configureServer(server) {
+          server.middlewares.use(async (req, res, next) => {
+            const url = req.url || '';
+            if (url === '/api/health' || url.startsWith('/api/health?')) {
+              try {
+                const { default: handler } = await import('./api/health.js');
+                await handler(req, res);
+              } catch (e: any) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: e?.message || String(e) }));
+              }
+              return;
+            }
+            if (url === '/api/forex' || url.startsWith('/api/forex?')) {
+              try {
+                const { default: handler } = await import('./api/forex.js');
+                await handler(req, res);
+              } catch (e: any) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: e?.message || String(e) }));
+              }
+              return;
+            }
+            next();
+          });
+        },
+      },
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
