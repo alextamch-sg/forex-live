@@ -1,0 +1,6 @@
+{
+  "name": "Monetary Straits",
+  "description": "Institutional-grade Singapore Dollar (SGD) foreign exchange & treasury management portal with live mid-market liquidity, interbank spreads, and instant clearing rails.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
